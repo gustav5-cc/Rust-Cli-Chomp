@@ -1,5 +1,5 @@
 //! Chomp AI
-//! Your Name and Bart Massey 2023
+//! Gustavo Carrillo Castro and Bart Massey 2023
 
 /// Maximum number of rows the AI can handle.
 const MAX_ROWS: usize = 4;
@@ -50,7 +50,12 @@ impl std::error::Error for ChompError {}
 /// Clones must have the same dimensions and squares, with independent
 /// state: making a move on a clone must not change the original.
 #[derive(Debug, Clone)]
-pub struct Chomp;
+pub struct Chomp {
+    grid: [[bool; MAX_ROWS]; MAX_COLS],
+    nrows: usize,
+    ncols: usize,
+}
+
 
 impl Chomp {
     /// Make a new Chomp board with the given size for this game.
@@ -62,15 +67,23 @@ impl Chomp {
     pub fn new(nrows: usize, ncols: usize) -> Result<Self, ChompError> {
         if nrows == 0 || ncols == 0 || nrows > MAX_ROWS || ncols > MAX_COLS {
             return Err(ChompError::InvalidSize { nrows, ncols });
-        }
-        todo!()
+        };
+
+
+        let grid = [[true; MAX_ROWS]; MAX_COLS];
+
+        Ok(Self {
+            grid,
+            nrows,
+            ncols,
+        })
     }
 
     /// Return the logical board dimensions as `(nrows, ncols)`.
     /// These are the original dimensions, even after squares are eaten.
     /// This method must not change the board.
     pub fn dimensions(&self) -> (usize, usize) {
-        todo!()
+        (self.nrows, self.ncols)
     }
 
     /// Return whether the square at `(row, col)` is uneaten.
@@ -79,7 +92,12 @@ impl Chomp {
     /// logical dimensions, including arbitrarily large coordinates.
     /// This method must not change the board or panic.
     pub fn is_present(&self, row: usize, col: usize) -> bool {
-        todo!("inspect the square at ({row}, {col})")
+        match (row, col) {
+            (x, y) if x >= self.nrows || y >= self.ncols => false,
+            (x, y) if !self.grid[x][y] => false,
+            (x, y) if self.grid[x][y] => true,
+            _ => false
+        }
     }
 
     /// Make a move on the current board, "eating" all cells
@@ -96,7 +114,12 @@ impl Chomp {
     /// eaten. This includes every move after the poison is eaten.
     /// Invalid moves must leave the board unchanged and must not panic.
     pub fn make_move(&mut self, row: usize, col: usize) -> Result<(), ChompError> {
-        todo!("make a move at ({row}, {col})")
+        match (row, col) {
+            (x, y) if x >= self.nrows || y >= self.ncols => Err(ChompError::InvalidMove {row, col}),
+            (x, y) if !self.grid[x][y] => Err(ChompError::InvalidMove {row, col}),
+            (x, y) if self.grid[x][y] => todo!("Change game board state to reflect move, call func maybe"),
+            _ => Err(ChompError::InvalidMove {row, col}),
+        }
     }
 
     /// Returns `Some` winning move for this position as `(row, col)`.
@@ -111,20 +134,20 @@ impl Chomp {
     /// # Strategy
     ///
     /// ```text
-    /// winning-move(posn):
-    ///     for each remaining row r
-    ///         for each remaining column c in r
-    ///             if r = 0 and c = 0
+    /// winning-move(posn):                               // first function call, current game board state
+    ///     for each remaining row r                      // for each row
+    ///         for each remaining column c in r          // for each col
+    ///             if r = 0 and c = 0                    // we start at the poison but skip
     ///                 continue
-    ///             p ← copy of posn
-    ///             chomp r, c from p
-    ///             m ← winning-move(p)
-    ///             if no winning move is returned
+    ///             p ← copy of posn                      // make a copy of the board
+    ///             chomp r, c from p                     // attempt a move on current coords
+    ///             m ← winning-move(p)                   // M is the result, either a move was made or none
+    ///             if no winning move is returned        // If none, return current move
     ///                 return the move r, c
     ///    return no winning move
     /// ```
     pub fn winning_move(&self) -> Option<(usize, usize)> {
-        todo!()
+        None
     }
 }
 
