@@ -51,11 +51,10 @@ impl std::error::Error for ChompError {}
 /// state: making a move on a clone must not change the original.
 #[derive(Debug, Clone)]
 pub struct Chomp {
-    grid: [[bool; MAX_ROWS]; MAX_COLS],
+    grid: [[bool; MAX_COLS]; MAX_ROWS],
     nrows: usize,
     ncols: usize,
 }
-
 
 impl Chomp {
     /// Make a new Chomp board with the given size for this game.
@@ -69,14 +68,14 @@ impl Chomp {
             return Err(ChompError::InvalidSize { nrows, ncols });
         };
 
+        let mut grid = [[false; MAX_COLS]; MAX_ROWS];
+        for row in grid.iter_mut().take(nrows) {
+            for cell in row.iter_mut().take(ncols) {
+                *cell = true;
+            }
+        }
 
-        let grid = [[true; MAX_ROWS]; MAX_COLS];
-
-        Ok(Self {
-            grid,
-            nrows,
-            ncols,
-        })
+        Ok(Self { grid, nrows, ncols })
     }
 
     /// Return the logical board dimensions as `(nrows, ncols)`.
@@ -96,7 +95,7 @@ impl Chomp {
             (x, y) if x >= self.nrows || y >= self.ncols => false,
             (x, y) if !self.grid[x][y] => false,
             (x, y) if self.grid[x][y] => true,
-            _ => false
+            _ => false,
         }
     }
 
@@ -115,10 +114,21 @@ impl Chomp {
     /// Invalid moves must leave the board unchanged and must not panic.
     pub fn make_move(&mut self, row: usize, col: usize) -> Result<(), ChompError> {
         match (row, col) {
-            (x, y) if x >= self.nrows || y >= self.ncols => Err(ChompError::InvalidMove {row, col}),
-            (x, y) if !self.grid[x][y] => Err(ChompError::InvalidMove {row, col}),
-            (x, y) if self.grid[x][y] => todo!("Change game board state to reflect move, call func maybe"),
-            _ => Err(ChompError::InvalidMove {row, col}),
+            (x, y) if x >= self.nrows || y >= self.ncols => {
+                Err(ChompError::InvalidMove { row, col })
+            }
+            (x, y) if !self.grid[x][y] => Err(ChompError::InvalidMove { row, col }),
+            (x, y) if self.grid[x][y] => {
+                self.apply_move_changes(x, y);
+                Ok(())
+            }
+            _ => Err(ChompError::InvalidMove { row, col }),
+        }
+    }
+
+    pub fn apply_move_changes(&mut self, row: usize, col: usize) {
+        for row in self.grid[row..].iter_mut() {
+            row[col..].fill(false);
         }
     }
 
@@ -147,7 +157,31 @@ impl Chomp {
     ///    return no winning move
     /// ```
     pub fn winning_move(&self) -> Option<(usize, usize)> {
+        for (row_i, row) in self.grid.iter().enumerate() {
+            if row.first() == Some(&true) {
+                for (col_i, col) in row.iter().enumerate() {
+                    if *col && row_i != 0 && col_i != 0 {
+                        let mut grid_copy = self.clone();
+                        let _ = grid_copy.make_move(row_i, col_i);
+                        
+                        if grid_copy.winning_move().is_none() {
+                            return Some((row_i, col_i))
+                        }
+
+                    }
+                }
+            }
+        }
         None
+    }
+
+    pub fn print_board(&self) {
+        for row in 0..self.nrows {
+            for col in 0..self.ncols {
+                print!("{} ", if self.is_present(row, col) { "#" } else { "." });
+            }
+            println!();
+        }
     }
 }
 
