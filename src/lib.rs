@@ -160,14 +160,13 @@ impl Chomp {
         for (row_i, row) in self.grid.iter().enumerate() {
             if row.first() == Some(&true) {
                 for (col_i, col) in row.iter().enumerate() {
-                    if *col && row_i != 0 && col_i != 0 {
+                    if *col && !(row_i == 0 && col_i == 0) {
                         let mut grid_copy = self.clone();
                         let _ = grid_copy.make_move(row_i, col_i);
-                        
-                        if grid_copy.winning_move().is_none() {
-                            return Some((row_i, col_i))
-                        }
 
+                        if grid_copy.winning_move().is_none() {
+                            return Some((row_i, col_i));
+                        }
                     }
                 }
             }
@@ -181,6 +180,29 @@ impl Chomp {
                 print!("{} ", if self.is_present(row, col) { "#" } else { "." });
             }
             println!();
+        }
+    }
+
+    pub fn fallback_move(&mut self) -> Option<(usize, usize)> {
+        // Find lowest row, rightmost square, and eat
+        for (row_i, row) in self.grid.iter().enumerate().rev() {
+            for (col_i, col) in row.iter().enumerate().rev() {
+                if *col {
+                    let _ = self.make_move(row_i, col_i);
+                    return Some((row_i, col_i));
+                }
+            }
+        }
+        None
+    }
+
+    /// Returns false if the poison (top left element) is still uneatean
+    /// and true otherwise. Used to quickly check if the game should
+    /// continue or if someone lost.
+    pub fn poison_eaten(&self) -> bool {
+        match self.grid[0][0] {
+            true => false,
+            false => true,
         }
     }
 }
