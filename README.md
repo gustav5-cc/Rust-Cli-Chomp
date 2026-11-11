@@ -1,46 +1,27 @@
-# Chomp Skeleton
-Your Name and Bart Massey 2023
+## Rust HW#2: Chomp Cli Program
+**Authored by: Gustavo Carrillo Castro**
+**Odin: gustav5**
+**CS523: Rust Programming**
+**11/10/2026**
 
-This is starter code for the game of
-[Chomp](https://en.wikipedia.org/wiki/Chomp). Complete the
-library, then write a command-line program to play against its AI.
+This is an expansion and completion of the game Chomp using CLI arguments and input against a basic ai outlined in the assignment repo, [Chomp](https://en.wikipedia.org/wiki/Chomp). Chomp is a game where the top left element of a grid is poison, and players take turns selecting an element thereafter removing everything below and to the right of that square (including the original square). The player to eat the poisoned square is the loser.
 
-The Rustdoc comments in `src/lib.rs` define the library interface
-and behavior for automated testing. Keep those public types and
-method signatures. You may choose the board representation and
-add helper functions or methods.
+#### Build
+The program should build fine using rust stable `cargo build`.
+To run the program use `cargo run -- row col`, where row and col are valid positive numbers, 1-4 for row, and 1-5 for col. Although the program should fail and explain usage if there are any errors.
 
-Follow the [assignment] for CLI instructions. Create `src/main.rs`
-for your program; Cargo will detect it as the `chomp` binary.
-Choose your own prompts, input format, layout, and helper
-functions. Use `#` for uneaten squares and `.` for eaten squares.
-Submit a complete gameplay transcript as `gameplay.txt` for
-review of the CLI.
+Tests can be run with `cargo test` for the Chomp lib code.
 
-[assignment]: https://github.com/pdx-cs-rust/rust-course-notes/blob/main/assignments/chomp/assignment.md
+Testing the CLI game can be aided by looking at our `sample-game.txt`. Very similar to the original repos suggested layout for the game.
 
-See [sample-gameplay.txt](sample-gameplay.txt) for a complete
-three-row, two-column game recorded from the reference solution.
-Your CLI should produce a roughly similar trace: an initial
-board, human prompts and moves, identified computer moves,
-updated boards after each move, and the final result. Your
-wording and display layout may differ.
+### Testing Process
+While developing the Chomp lib code I relied on the initial 2 tests given to verify the simple winning move cases and invalid init resulting in an error. As helper functions were built out it was useful to include tests to verify fallback game move logic and the game move function "ate" the expected squares. Things were also tested manually as I went along and set up the main program loop as things I did not foresee/test with code popped up. My winning move logic was correct for most tests, but a small control flow error meant the ai always favored `1 1` as its first move. I did not catch this until I had to play against the ai and noticed the pattern.
+### Issues
+They're less so issues more so a byproduct of finishing things, but I had to add 4 helper functions to the lib code. `apply_move_changes, print_board, fallback_move, and poison_eaten`functions to ergonomically design the code.
 
-Build the library with `cargo build`. Once you have created the
-program, run it with `cargo run`. If you use command-line size
-arguments, run a three-row, four-column game with
-`cargo run -- 3 4`. The library skeleton compiles, but its
-`todo!()` placeholders and game tests require your implementation.
+It was interesting handling control flow, in comparison to lower division courses and cli programs. Building even this simple game was a nice experience in seeing how Rust forces you to handle your edge cases, whereas C and C++ would let you shoot yourself in the foot if you assume only happy path results and don't check return types. For concrete examples, it was new to me to consider when it was best to `match` results vs `if let` or `let {}`to appropriately handle different scenarios. 
 
-*Update this README to describe your implementation, testing,
-and any issues you encountered. Then **delete this comment**.*
-
-# License
-
-This work is licensed under the "MIT License". Please see
-`LICENSE.txt` in this distribution for license terms.
 
 # AI Acknowledgement
-
-Codex assisted in the preparation of this skeleton, starting
-from an original assignment by Bart Massey.
+Google search ai results were helpful when looking for what features /syntax is available in rust, granted what it suggested was often corrected by clippy.
+Gemini Chat interface was used to aid in doc comment creation for some of the helper functions, and to generate some tests.
