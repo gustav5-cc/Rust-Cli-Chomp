@@ -1,29 +1,118 @@
-$ cargo run --quiet -- 3 2
-##
-##
-##
-Your move (row col): 2 1
-##
-##
-#.
-Computer: 2 0
-##
-##
-..
-Your move (row col): 1 1
-##
-#.
-..
+cargo run --quiet -- 4 2
+# # 
+# # 
+# # 
+# # 
+Make a move (row col): 2 1
+# # 
+# # 
+# . 
+# . 
+Computer: 3 0
+# # 
+# # 
+# . 
+. . 
+Make a move (row col): 2 0
+# # 
+# # 
+. . 
+. . 
+Computer: 1 1
+# # 
+# . 
+. . 
+. . 
+Make a move (row col): 0 1
+# . 
+# . 
+. . 
+. . 
 Computer: 1 0
-##
-..
-..
-Your move (row col): 0 1
-#.
-..
-..
+# . 
+. . 
+. . 
+. . 
+Make a move (row col): 0 0
+. . 
+. . 
+. . 
+. . 
+You lost, the ai won!
+
+
+Sample 2 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+cargo run --quiet -- 4 4
+# # # # 
+# # # # 
+# # # # 
+# # # # 
+Make a move (row col): 2 2
+# # # # 
+# # # # 
+# # . . 
+# # . . 
+Computer: 1 1
+# # # # 
+# . . . 
+# . . . 
+# . . . 
+Make a move (row col): 0 3
+# # # . 
+# . . . 
+# . . . 
+# . . . 
+Computer: 3 0
+# # # . 
+# . . . 
+# . . . 
+. . . . 
+Make a move (row col): 1 0
+# # # . 
+. . . . 
+. . . . 
+. . . . 
+Computer: 0 1
+# . . . 
+. . . . 
+. . . . 
+. . . . 
+Make a move (row col): 1 1
+invalid move at (1, 1): expected an uneaten square. Please try again.
+Make a move (row col): 0 0
+. . . . 
+. . . . 
+. . . . 
+. . . . 
+You lost, the ai won!
+
+Sample 3 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+cargo run --quiet -- 3 2
+# # 
+# # 
+# # 
+Make a move (row col): 2 1
+# # 
+# # 
+# . 
+Computer: 2 0
+# # 
+# # 
+. . 
+Make a move (row col): 1 1
+# # 
+# . 
+. . 
+Computer: 1 0
+# # 
+. . 
+. . 
+Make a move (row col): 0 1
+# . 
+. . 
+. . 
 Computer: 0 0
-..
-..
-..
-You win!
+. . 
+. . 
+. . 
+The ai lost, you won!

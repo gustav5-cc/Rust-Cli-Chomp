@@ -1,16 +1,40 @@
 use chomp_ai::Chomp;
 use std::env;
 use std::io::{self, Write};
+use std::process;
 
 fn main() {
-    // let args: Vec<String> = env::args().collect();
-    let mut board = Chomp::new(3, 2).unwrap();
+    let args: Vec<String> = env::args().collect();
 
-    //if args.len() < 3 {
-    //    todo!("Error msg");
-    //}
+    if args.len() != 3 {
+        eprintln!("Usage: {} <rows> <cols>", args[0]);
+        process::exit(1);
+    }
 
-    // validate that the args are usize
+    let rows: usize = match args[1].parse() {
+        Ok(num) => num,
+        Err(_) => {
+            eprintln!("Error: <rows> must be a valid positive number.");
+            process::exit(1);
+        }
+    };
+
+    let cols: usize = match args[2].parse() {
+        Ok(num) => num,
+        Err(_) => {
+            eprintln!("Error: <cols> must be a valid positive number.");
+            process::exit(1);
+        }
+    };
+
+    //let mut board = Chomp::new(rows, cols).unwrap();
+    let mut board = Chomp::new(rows, cols).unwrap_or_else(|e| {
+        eprintln!(
+            "Failed to initialize the board, {}. \nChoose a board between 1-4 rows and 1-5 cols",
+            e
+        );
+        process::exit(1);
+    });
 
     // print board
     board.print_board();

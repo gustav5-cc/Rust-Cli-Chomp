@@ -126,6 +126,11 @@ impl Chomp {
         }
     }
 
+    /// Helper method that directly modifies the board grid to apply a move.
+    ///
+    /// Sets all squares starting from `row` downwards and `col` rightwards
+    /// (inclusive) to `false` (eaten). This assumes that bounds checking
+    /// and validation have already been handled by `make_move`.
     pub fn apply_move_changes(&mut self, row: usize, col: usize) {
         for row in self.grid[row..].iter_mut() {
             row[col..].fill(false);
@@ -174,6 +179,10 @@ impl Chomp {
         None
     }
 
+    /// Prints the current state of the board to standard output.
+    ///
+    /// Uneaten squares are represented by a `#`, and eaten squares
+    /// are represented by a `.`.
     pub fn print_board(&self) {
         for row in 0..self.nrows {
             for col in 0..self.ncols {
@@ -183,6 +192,12 @@ impl Chomp {
         }
     }
 
+    /// Performs and returns a fallback move when no winning move is found.
+    ///
+    /// This strategy searches from the bottom-right corner of the board upwards
+    /// and leftwards to find the first available (uneaten) square, "eats" it,
+    /// and returns its coordinates as `Some((row, col))`.
+    /// Returns `None` if no valid squares remain.
     pub fn fallback_move(&mut self) -> Option<(usize, usize)> {
         // Find lowest row, rightmost square, and eat
         for (row_i, row) in self.grid.iter().enumerate().rev() {
@@ -224,4 +239,143 @@ fn test_invalid_sizes() {
             Err(ChompError::InvalidSize { .. })
         ));
     }
+}
+
+#[test]
+fn test_new_valid_board() {
+    let board = Chomp::new(3, 4).expect("Failed to create valid board");
+    assert_eq!(board.dimensions(), (3, 4));
+
+    // Check that all valid squares are initially present
+    for row in 0..3 {
+        for col in 0..4 {
+            assert!(board.is_present(row, col));
+        }
+    }
+}
+
+#[test]
+fn test_new_invalid_size() {
+    // Zero dimensions
+    assert!(matches!(
+        Chomp::new(0, 3),
+        Err(ChompError::InvalidSize { nrows: 0, ncols: 3 })
+    ));
+    assert!(matches!(
+        Chomp::new(3, 0),
+        Err(ChompError::InvalidSize { nrows: 3, ncols: 0 })
+    ));
+
+    // Exceeding MAX_ROWS / MAX_COLS
+    assert!(matches!(
+        Chomp::new(MAX_ROWS + 1, 3),
+        Err(ChompError::InvalidSize { nrows: 5, ncols: 3 })
+    ));
+    assert!(matches!(
+        Chomp::new(2, MAX_COLS + 1),
+        Err(ChompError::InvalidSize { nrows: 2, ncols: 6 })
+    ));
+}
+
+#[test]
+fn test_is_present_out_of_bounds() {
+    let board = Chomp::new(2, 2).unwrap();
+    assert!(!board.is_present(2, 2));
+    assert!(!board.is_present(10, 10));
+}
+
+#[test]
+fn test_make_move_valid() {
+    let mut board = Chomp::new(3, 3).unwrap();
+
+    // Eat from (1, 1)
+    assert!(board.make_move(1, 1).is_ok());
+
+    // Top left should still be present
+    assert!(board.is_present(0, 0));
+    assert!(board.is_present(0, 1));
+    assert!(board.is_present(1, 0));
+
+    // (1,1) and everything below/right should be eaten
+    assert!(!board.is_present(1, 1));
+    assert!(!board.is_present(1, 2));
+    assert!(!board.is_present(2, 1));
+    assert!(!board.is_present(2, 2));
+}
+
+#[test]
+fn test_make_move_invalid() {
+    let mut board = Chomp::new(3, 3).unwrap();
+
+    // Move outside logical dimensions
+    assert!(matches!(
+        board.make_move(3, 3),
+        Err(ChompError::InvalidMove { row: 3, col: 3 })
+    ));
+
+    // Make a valid move
+    board.make_move(1, 1).unwrap();
+
+    // Try to move on an already eaten square
+    assert!(matches!(
+        board.make_move(2, 2),
+        Err(ChompError::InvalidMove { row: 2, col: 2 })
+    ));
+}
+
+#[test]
+fn test_poison_eaten() {
+    let mut board = Chomp::new(2, 2).unwrap();
+    assert!(!board.poison_eaten());
+
+    board.make_move(1, 1).unwrap();
+    assert!(!board.poison_eaten()); // Poison still there
+
+    board.make_move(0, 0).unwrap(); // Eat the poison
+    assert!(board.poison_eaten());
+}
+
+#[test]
+fn test_fallback_move() {
+    let mut board = Chomp::new(2, 2).unwrap();
+
+    // Fallback should pick the bottom-right most available square
+    let mov = board.fallback_move();
+    assert_eq!(mov, Some((1, 1)));
+
+    let mov2 = board.fallback_move();
+    // Depending on iteration order (rev over rows, then rev over cols),
+    // it should pick (1, 0) or (0, 1). Given the nested loops, it checks
+    // row 1 entirely before row 0, so it will pick (1, 0).
+    assert_eq!(mov2, Some((1, 0)));
+}
+
+#[test]
+fn test_winning_move_1x2() {
+    // On a 1x2 board, eating (0, 1) is a forced win, leaving the opponent
+    // with only the poison square (0, 0).
+    let board = Chomp::new(1, 2).unwrap();
+
+    let win = board.winning_move();
+    assert_eq!(win, Some((0, 1)));
+}
+
+#[test]
+fn test_winning_move_no_win() {
+    // If it's a 1x1 board, there's only the poison square left.
+    // A winning move must be an uneaten square *other* than (0,0).
+    let board = Chomp::new(1, 1).unwrap();
+
+    let win = board.winning_move();
+    assert_eq!(win, None);
+}
+
+#[test]
+fn test_winning_move_square() {
+    // On a square board > 1x1, eating (1,1) is always a mathematically
+    // proven winning opening move in Chomp.
+    let board = Chomp::new(2, 2).unwrap();
+
+    let win = board.winning_move();
+    assert_eq!(win, Some((1, 1)));
 }
