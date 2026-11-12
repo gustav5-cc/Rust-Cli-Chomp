@@ -3,6 +3,7 @@ use std::env;
 use std::io::{self, Write};
 use std::process;
 
+// A simple chomp board game cli implementation against a simple ai
 fn main() {
     let args: Vec<String> = env::args().collect();
 
@@ -90,6 +91,9 @@ fn main() {
     }
 }
 
+// Helper function to loop until user enters a valid
+// usize usize, response to the user prompt so a tuple
+// can be returned to the gameplay loop to enact the users move.
 pub fn get_player_move() -> (usize, usize) {
     let mut input = String::new();
 
